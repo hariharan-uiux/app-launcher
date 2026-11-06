@@ -1,0 +1,233 @@
+{
+  "$schema": "./schema/catalog.schema.json",
+  "name": "Community App Catalog",
+  "description": "Curated repository of essential cross-platform desktop applications",
+  "version": "1.0.0",
+  "updatedAt": "2026-11-06T22:45:00Z",
+  "categories": [
+    "All",
+    "Developer",
+    "Productivity",
+    "Utilities",
+    "Media",
+    "AI & Tools"
+  ],
+  "apps": [
+    {
+      "id": "vscode",
+      "name": "Visual Studio Code",
+      "description": "Fast, extensible code editor with integrated Git, debugging, and extensions ecosystem.",
+      "icon": "Code2",
+      "category": "Developer",
+      "tags": ["Editor", "TypeScript", "Python", "IDE"],
+      "version": "1.96.2",
+      "installedVersion": "1.96.2",
+      "status": "installed",
+      "author": "Microsoft",
+      "size": "95 MB",
+      "homepage": "https://code.visualstudio.com",
+      "installTargets": {
+        "linux": { "type": "binary", "command": "code" },
+        "windows": { "type": "binary", "command": "code.cmd" }
+      }
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor AI Editor",
+      "description": "AI-first code editor built on VS Code with seamless Copilot and Claude integrations.",
+      "icon": "Sparkles",
+      "category": "AI & Tools",
+      "tags": ["AI", "Editor", "LLM", "Coding"],
+      "version": "0.45.8",
+      "installedVersion": "0.42.1",
+      "status": "update_available",
+      "author": "Anysphere",
+      "size": "140 MB",
+      "homepage": "https://cursor.com",
+      "installTargets": {
+        "linux": { "type": "appimage", "command": "cursor" },
+        "windows": { "type": "exe", "command": "Cursor.exe" }
+      }
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "description": "A powerful knowledge base on top of a local folder of plain text Markdown files.",
+      "icon": "BookOpen",
+      "category": "Productivity",
+      "tags": ["Notes", "Markdown", "PKM", "Knowledge"],
+      "version": "1.7.7",
+      "installedVersion": "1.7.7",
+      "status": "installed",
+      "author": "Dynalist",
+      "size": "85 MB",
+      "homepage": "https://obsidian.md",
+      "installTargets": {
+        "linux": { "type": "appimage", "command": "obsidian" },
+        "windows": { "type": "exe", "command": "Obsidian.exe" }
+      }
+    },
+    {
+      "id": "postman",
+      "name": "Postman",
+      "description": "API platform for building, designing, testing, and iterating REST, GraphQL, and gRPC APIs.",
+      "icon": "Send",
+      "category": "Developer",
+      "tags": ["API", "HTTP", "Testing", "REST"],
+      "version": "11.23.0",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "Postman Inc.",
+      "size": "160 MB",
+      "homepage": "https://www.postman.com",
+      "installTargets": {
+        "linux": { "type": "tar", "command": "postman" },
+        "windows": { "type": "exe", "command": "Postman.exe" }
+      }
+    },
+    {
+      "id": "vlc",
+      "name": "VLC Media Player",
+      "description": "Free, open-source cross-platform multimedia player that plays most multimedia files and discs.",
+      "icon": "PlayCircle",
+      "category": "Media",
+      "tags": ["Video", "Audio", "Player", "Open Source"],
+      "version": "3.0.21",
+      "installedVersion": "3.0.20",
+      "status": "update_available",
+      "author": "VideoLAN",
+      "size": "42 MB",
+      "homepage": "https://www.videolan.org",
+      "installTargets": {
+        "linux": { "type": "package", "command": "vlc" },
+        "windows": { "type": "exe", "command": "vlc.exe" }
+      }
+    },
+    {
+      "id": "docker-desktop",
+      "name": "Docker Desktop",
+      "description": "Fast container development environment for building, sharing, and running containerized apps.",
+      "icon": "Container",
+      "category": "Developer",
+      "tags": ["Containers", "DevOps", "Kubernetes", "Linux"],
+      "version": "4.35.1",
+      "installedVersion": "4.35.1",
+      "status": "installed",
+      "author": "Docker Inc.",
+      "size": "580 MB",
+      "homepage": "https://www.docker.com/products/docker-desktop",
+      "installTargets": {
+        "linux": { "type": "deb", "command": "docker" },
+        "windows": { "type": "exe", "command": "Docker Desktop.exe" }
+      }
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama Desktop",
+      "description": "Get up and running with large language models locally: Llama 3, Mistral, Gemma, and DeepSeek.",
+      "icon": "Cpu",
+      "category": "AI & Tools",
+      "tags": ["AI", "Local LLM", "Llama3", "Inference"],
+      "version": "0.5.4",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "Ollama Team",
+      "size": "65 MB",
+      "homepage": "https://ollama.com",
+      "installTargets": {
+        "linux": { "type": "binary", "command": "ollama" },
+        "windows": { "type": "exe", "command": "ollama app.exe" }
+      }
+    },
+    {
+      "id": "dbeaver",
+      "name": "DBeaver Community",
+      "description": "Free universal database tool for developers, database administrators, and analysts.",
+      "icon": "Database",
+      "category": "Developer",
+      "tags": ["SQL", "Postgres", "MySQL", "SQLite", "Database"],
+      "version": "24.3.0",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "DBeaver Corp",
+      "size": "115 MB",
+      "homepage": "https://dbeaver.io",
+      "installTargets": {
+        "linux": { "type": "package", "command": "dbeaver" },
+        "windows": { "type": "exe", "command": "dbeaver.exe" }
+      }
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram Desktop",
+      "description": "Fast and secure cloud-based messaging app with end-to-end encryption support.",
+      "icon": "MessageSquare",
+      "category": "Productivity",
+      "tags": ["Chat", "Messaging", "Communication"],
+      "version": "5.9.0",
+      "installedVersion": "5.9.0",
+      "status": "installed",
+      "author": "Telegram FZ-LLC",
+      "size": "45 MB",
+      "homepage": "https://desktop.telegram.org",
+      "installTargets": {
+        "linux": { "type": "binary", "command": "telegram-desktop" },
+        "windows": { "type": "exe", "command": "Telegram.exe" }
+      }
+    },
+    {
+      "id": "wireshark",
+      "name": "Wireshark",
+      "description": "The world's foremost and widely-used network protocol analyzer for troubleshooting and analysis.",
+      "icon": "Network",
+      "category": "Utilities",
+      "tags": ["Networking", "Packet Capture", "Security"],
+      "version": "4.4.2",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "Wireshark Foundation",
+      "size": "70 MB",
+      "homepage": "https://www.wireshark.org",
+      "installTargets": {
+        "linux": { "type": "package", "command": "wireshark" },
+        "windows": { "type": "exe", "command": "Wireshark.exe" }
+      }
+    },
+    {
+      "id": "gitkraken",
+      "name": "GitKraken Client",
+      "description": "Intuitive Git GUI client with merge conflict editor, interactive rebase, and workspace management.",
+      "icon": "GitBranch",
+      "category": "Developer",
+      "tags": ["Git", "Version Control", "GitHub", "GitLab"],
+      "version": "10.4.0",
+      "installedVersion": "10.2.1",
+      "status": "update_available",
+      "author": "Axosoft",
+      "size": "130 MB",
+      "homepage": "https://www.gitkraken.com",
+      "installTargets": {
+        "linux": { "type": "deb", "command": "gitkraken" },
+        "windows": { "type": "exe", "command": "GitKraken.exe" }
+      }
+    },
+    {
+      "id": "flameshot",
+      "name": "Flameshot",
+      "description": "Powerful, simple-to-use screenshot software with in-app annotation tools and upload options.",
+      "icon": "Camera",
+      "category": "Utilities",
+      "tags": ["Screenshot", "Annotation", "Screen", "Utility"],
+      "version": "12.1.0",
+      "installedVersion": "12.1.0",
+      "status": "installed",
+      "author": "Flameshot Team",
+      "size": "18 MB",
+      "homepage": "https://flameshot.org",
+      "installTargets": {
+        "linux": { "type": "package", "command": "flameshot" },
+        "windows": { "type": "exe", "command": "flameshot.exe" }
+      }
+    }
+  ]
+}
