@@ -9,6 +9,13 @@ app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=128');
 
 let mainWindow = null;
+let isQuitting = false;
+let userSettings = {
+  runInBackground: true,
+  autoUpdate: true,
+  startOnBoot: false,
+  minimizeToTray: true,
+};
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 function createWindow() {
@@ -50,10 +57,23 @@ function createWindow() {
     mainWindow.loadURL(devUrl);
   }
 
+  mainWindow.on('close', (event) => {
+    if (userSettings.runInBackground && !isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
+
+// Track when app is truly quitting
+app.on('before-quit', () => {
+  isQuitting = true;
+});
 
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();
@@ -145,6 +165,34 @@ function setupIpc() {
       version: app.getVersion(),
       electronVersion: process.versions.electron,
       nodeVersion: process.versions.node,
+    };
+  });
+
+  // Settings IPC
+  ipcMain.handle('settings:get', async () => {
+    return { ok: true, settings: userSettings };
+  });
+
+  ipcMain.handle('settings:set', async (_, newSettings) => {
+    userSettings = { ...userSettings, ...newSettings };
+    if (typeof newSettings.startOnBoot === 'boolean') {
+      try {
+        app.setLoginItemSettings({ openAtLogin: newSettings.startOnBoot });
+      } catch (e) {
+        console.error('Error updating login item settings:', e);
+      }
+    }
+    return { ok: true, settings: userSettings };
+  });
+
+  // Launcher updater check
+  ipcMain.handle('updater:check', async () => {
+    return {
+      ok: true,
+      currentVersion: app.getVersion(),
+      latestVersion: app.getVersion(),
+      upToDate: true,
+      message: 'App Launcher is up to date',
     };
   });
 }

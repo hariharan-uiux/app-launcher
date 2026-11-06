@@ -30,10 +30,10 @@ export function AppListItem({
   onSelect,
 }: AppListItemProps) {
   return (
-    <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-zinc-800/80 bg-zinc-950/60 hover:bg-zinc-900/40 hover:border-zinc-700 transition-colors gap-3">
+    <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-800 bg-zinc-950 hover:bg-zinc-900/40 transition-colors gap-3 w-full">
       {/* Icon & Title info */}
       <div className="flex items-center space-x-3.5 min-w-0 flex-1">
-        <div className="h-10 w-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 flex-shrink-0">
+        <div className="h-11 w-11 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 flex-shrink-0">
           <AppIcon name={app.icon} className="h-5 w-5 text-zinc-100" />
         </div>
         <div className="min-w-0 flex-1">
@@ -54,7 +54,7 @@ export function AppListItem({
 
       {/* Metadata tags */}
       <div className="hidden lg:flex items-center space-x-2 font-mono text-xs text-zinc-400">
-        <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[11px]">
+        <span className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-[11px]">
           {app.category}
         </span>
         <span className="text-zinc-500">{app.size}</span>

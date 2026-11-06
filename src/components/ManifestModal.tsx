@@ -90,7 +90,7 @@ export function ManifestModal({
         </DialogHeader>
 
         {manifestInfo && (
-          <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800/80 text-xs space-y-1 font-mono">
+          <div className="p-3 bg-zinc-900/60 border border-zinc-800/80 text-xs space-y-1 font-mono">
             <div className="flex justify-between">
               <span className="text-zinc-400">Active Source:</span>
               <span className="text-zinc-200 truncate max-w-[200px]">{manifestInfo.name || "Default Manifest"}</span>
@@ -165,14 +165,14 @@ export function ManifestModal({
           )}
 
           {errorMsg && (
-            <div className="flex items-center space-x-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 p-2.5 rounded-lg">
+            <div className="flex items-center space-x-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 p-2.5">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg">
+            <div className="flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2.5">
               <Check className="h-4 w-4 flex-shrink-0" />
               <span>{successMsg}</span>
             </div>

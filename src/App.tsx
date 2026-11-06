@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useRef } from "react"
 import {
   Rocket,
   Search,
@@ -18,6 +18,7 @@ import {
   Play,
   RotateCcw,
   ExternalLink,
+  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,10 +28,13 @@ import { AppCard } from "@/components/AppCard"
 import { AppListItem } from "@/components/AppListItem"
 import { ManifestModal } from "@/components/ManifestModal"
 import { AppDetailModal } from "@/components/AppDetailModal"
+import { SettingsModal } from "@/components/SettingsModal"
 import { AppItem, CatalogManifest, ViewMode, StatusFilter } from "@/types/catalog"
+import { LauncherSettings, DEFAULT_LAUNCHER_SETTINGS } from "@/types/settings"
 
 const LOCAL_STORAGE_KEY = "app_launcher_custom_catalog"
 const MANIFEST_SOURCE_KEY = "app_launcher_manifest_source"
+const SETTINGS_STORAGE_KEY = "app_launcher_user_settings"
 
 // Declare window electron API for TypeScript
 declare global {
@@ -41,6 +45,9 @@ declare global {
       launchApp: (command: string, appName: string) => Promise<{ ok: boolean; message?: string; error?: string }>
       openExternalUrl: (url: string) => Promise<{ ok: boolean; error?: string }>
       getSystemInfo: () => Promise<{ platform: string; arch: string; version: string }>
+      getSettings?: () => Promise<{ ok: boolean; settings?: any }>
+      saveSettings?: (settings: any) => Promise<{ ok: boolean; settings?: any }>
+      checkForLauncherUpdates?: () => Promise<{ ok: boolean; currentVersion: string; latestVersion: string; upToDate: boolean; message: string }>
     }
   }
 }
@@ -54,8 +61,26 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [manifestModalOpen, setManifestModalOpen] = useState(false)
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false)
+  const [launcherSettings, setLauncherSettings] = useState<LauncherSettings>(DEFAULT_LAUNCHER_SETTINGS)
   const [selectedApp, setSelectedApp] = useState<AppItem | null>(null)
   const [systemPlatform, setSystemPlatform] = useState<string>("linux")
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement !== searchInputRef.current) {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === ",") {
+        e.preventDefault()
+        setSettingsModalOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [])
 
   // Busy states for ongoing install / update simulations
   const [busyState, setBusyState] = useState<Record<string, { action: string; progress: number }>>({})
@@ -135,6 +160,21 @@ export default function App() {
       loadManifestFromSource("/apps.json", "default")
     }
 
+    // Load settings from localStorage or Electron
+    const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings)
+        setLauncherSettings((prev) => ({ ...prev, ...parsed }))
+      } catch (e) {}
+    } else if (window.electronAPI?.getSettings) {
+      window.electronAPI.getSettings().then((res) => {
+        if (res.ok && res.settings) {
+          setLauncherSettings((prev) => ({ ...prev, ...res.settings }))
+        }
+      })
+    }
+
     // Detect system info
     if (window.electronAPI) {
       window.electronAPI.getSystemInfo().then((info) => {
@@ -145,6 +185,25 @@ export default function App() {
       setSystemPlatform(isWin ? "windows" : "linux")
     }
   }, [])
+
+  // Settings update handler
+  const handleUpdateSettings = (newSettings: LauncherSettings) => {
+    setLauncherSettings(newSettings)
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(newSettings))
+    if (window.electronAPI?.saveSettings) {
+      window.electronAPI.saveSettings(newSettings)
+    }
+    showToast("Settings saved", "success")
+  }
+
+  // Reset catalog overrides handler
+  const handleResetCatalogOverrides = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY)
+    if (manifest) {
+      setApps(manifest.apps)
+    }
+    showToast("Catalog overrides reset to default", "info")
+  }
 
   // Persist app status changes
   const persistAppChange = (updatedApps: AppItem[]) => {
@@ -274,9 +333,8 @@ export default function App() {
         const q = searchQuery.toLowerCase()
         const matchName = app.name.toLowerCase().includes(q)
         const matchDesc = app.description.toLowerCase().includes(q)
-        const matchTags = app.tags.some((t) => t.toLowerCase().includes(q))
         const matchAuthor = app.author.toLowerCase().includes(q)
-        return matchName || matchDesc || matchTags || matchAuthor
+        return matchName || matchDesc || matchAuthor
       }
 
       return true
@@ -287,13 +345,14 @@ export default function App() {
   const installedCount = apps.filter((a) => a.status === "installed" || a.status === "update_available").length
   const updatesCount = apps.filter((a) => a.status === "update_available").length
 
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-zinc-100">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-5 right-5 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div
-            className={`px-4 py-2.5 rounded-lg border text-xs font-medium shadow-xl flex items-center space-x-2 ${
+            className={`px-4 py-2.5 border text-xs font-medium shadow-xl flex items-center space-x-2 ${
               toastMessage.type === "success"
                 ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-200"
                 : toastMessage.type === "error"
@@ -307,21 +366,14 @@ export default function App() {
       )}
 
       {/* Top Application Bar */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <header className="border-b border-zinc-800 bg-zinc-950 sticky top-0 z-40">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
           {/* Brand */}
           <div className="flex items-center space-x-2.5 flex-shrink-0">
-            <div className="h-8 w-8 rounded-lg bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold shadow">
+            <div className="h-8 w-8 bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold shadow">
               <Rocket className="h-4 w-4" />
             </div>
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <span className="font-bold text-sm tracking-tight text-zinc-100">AppLauncher</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 font-mono border border-zinc-800">
-                  {systemPlatform}
-                </span>
-              </div>
-            </div>
+            <span className="font-bold text-sm tracking-tight text-zinc-100">AppLauncher</span>
           </div>
 
           {/* Central Search Bar */}
@@ -329,30 +381,39 @@ export default function App() {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
               <Input
+                ref={searchInputRef}
                 type="text"
-                placeholder="Search apps, tags, authors, or categories..."
+                placeholder="Search apps, authors, or categories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 bg-zinc-900/80 border-zinc-800 text-xs text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-zinc-700 h-9 rounded-lg"
+                className="pl-8 pr-8 bg-zinc-900/80 border-zinc-800 text-xs text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-zinc-700 h-9"
               />
-              {searchQuery && (
+              {searchQuery ? (
                 <button
                   onClick={() => setSearchQuery("")}
                   className="absolute right-2.5 top-2.5 text-xs text-zinc-500 hover:text-zinc-300"
                 >
                   ✕
                 </button>
+              ) : (
+                <kbd className="absolute right-2.5 top-2.5 text-[10px] text-zinc-500 bg-zinc-800/80 border border-zinc-700/60 px-1.5 py-0.5 font-mono pointer-events-none">
+                  /
+                </kbd>
               )}
             </div>
           </div>
 
           {/* Right Tools */}
-          <div className="flex items-center space-x-1.5 flex-shrink-0">
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <span className="text-xs text-zinc-400 font-mono hidden md:inline mr-1">
+              {filteredApps.length} apps
+            </span>
+
             {/* View Mode Switcher */}
-            <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-md p-0.5">
+            <div className="flex items-center bg-zinc-900 border border-zinc-800 p-0.5">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-1.5 rounded text-xs transition-colors ${
+                className={`p-1.5 text-xs transition-colors ${
                   viewMode === "grid" ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
                 }`}
                 title="Grid View"
@@ -361,7 +422,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-1.5 rounded text-xs transition-colors ${
+                className={`p-1.5 text-xs transition-colors ${
                   viewMode === "list" ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
                 }`}
                 title="List View"
@@ -381,233 +442,248 @@ export default function App() {
               <FolderOpen className="h-3.5 w-3.5 sm:mr-1.5" />
               <span className="hidden sm:inline">Manifest</span>
             </Button>
+
+            {/* Settings Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSettingsModalOpen(true)}
+              className="text-xs h-8 border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:text-zinc-100 px-2.5"
+              title="Launcher Settings (Ctrl+,)"
+            >
+              <Settings className="h-3.5 w-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">Settings</span>
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Navigation Tabs Bar */}
-      <div className="border-b border-zinc-800/80 bg-zinc-950/60 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2.5">
-          {/* Primary View Tabs */}
-          <div className="flex items-center space-x-1">
-            <button
+      {/* Main Content Area */}
+      <main className="w-full flex-1 bg-zinc-950 flex flex-col py-6 sm:py-8 pb-28 sm:pb-32">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col">
+          {/* Top Metrics Stat Boxes */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 border-l border-t border-zinc-800 mb-6 bg-zinc-950">
+            {/* Box 1: Total Apps */}
+            <div
               onClick={() => {
                 setActiveTab("catalog")
                 setStatusFilter("all")
               }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center space-x-1.5 ${
-                activeTab === "catalog"
-                  ? "bg-zinc-100 text-zinc-950"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
-              }`}
+              className="border-r border-b border-zinc-800 p-3 sm:p-3.5 bg-zinc-950 hover:bg-zinc-900/50 transition-colors flex items-center space-x-3 cursor-pointer group"
+              title="View all catalog apps"
             >
-              <PackageCheck className="h-3.5 w-3.5" />
-              <span>App Catalog</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 font-mono">
-                {apps.length}
-              </span>
-            </button>
+              <div className="h-8 w-8 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-zinc-200 group-hover:border-zinc-700 transition-colors flex-shrink-0">
+                <PackageCheck className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-zinc-500 uppercase font-mono block leading-none mb-1">Total Apps</span>
+                <span className="text-sm sm:text-base font-bold font-mono text-zinc-100 leading-none">{apps.length}</span>
+              </div>
+            </div>
 
-            <button
+            {/* Box 2: Installed */}
+            <div
               onClick={() => {
                 setActiveTab("installed")
                 setStatusFilter("all")
               }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center space-x-1.5 ${
-                activeTab === "installed"
-                  ? "bg-zinc-100 text-zinc-950"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
-              }`}
+              className="border-r border-b border-zinc-800 p-3 sm:p-3.5 bg-zinc-950 hover:bg-zinc-900/50 transition-colors flex items-center space-x-3 cursor-pointer group"
+              title="View installed apps"
             >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>Installed</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 font-mono">
-                {installedCount}
-              </span>
-            </button>
+              <div className="h-8 w-8 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-zinc-700 transition-colors flex-shrink-0">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-zinc-500 uppercase font-mono block leading-none mb-1">Installed</span>
+                <span className="text-sm sm:text-base font-bold font-mono text-zinc-100 leading-none">{installedCount}</span>
+              </div>
+            </div>
 
-            {updatesCount > 0 && (
-              <button
+            {/* Box 3: RAM */}
+            <div className="border-r border-b border-zinc-800 p-3 sm:p-3.5 bg-zinc-950 flex items-center space-x-3">
+              <div className="h-8 w-8 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 flex-shrink-0">
+                <Cpu className="h-4 w-4 text-zinc-400" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-zinc-500 uppercase font-mono block leading-none mb-1">RAM</span>
+                <span className="text-sm sm:text-base font-bold font-mono text-zinc-100 leading-none">~38 MB</span>
+              </div>
+            </div>
+
+            {/* Box 4: Fast Startup */}
+            <div className="border-r border-b border-zinc-800 p-3 sm:p-3.5 bg-zinc-950 flex items-center space-x-3">
+              <div className="h-8 w-8 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 flex-shrink-0">
+                <Sparkles className="h-4 w-4 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-zinc-500 uppercase font-mono block leading-none mb-1">Fast Startup</span>
+                <span className="text-sm sm:text-base font-bold font-mono text-zinc-100 leading-none">&lt;120ms</span>
+              </div>
+            </div>
+
+            {/* Box 5: Platform */}
+            <div className="border-r border-b border-zinc-800 p-3 sm:p-3.5 bg-zinc-950 flex items-center space-x-3 col-span-2 sm:col-span-1">
+              <div className="h-8 w-8 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 flex-shrink-0">
+                <HardDrive className="h-4 w-4 text-zinc-400" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] text-zinc-500 uppercase font-mono block leading-none mb-1">Platform</span>
+                <span className="text-xs sm:text-sm font-bold font-mono text-zinc-100 uppercase leading-none truncate block">
+                  {systemPlatform} x64
+                </span>
+              </div>
+            </div>
+          </div>
+          {filteredApps.length === 0 ? (
+            <div className="py-24 flex flex-col items-center justify-center text-center space-y-3 border border-zinc-800 bg-zinc-950">
+              <div className="h-12 w-12 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500">
+                <Search className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-zinc-200">No applications match your filter</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+                  Try clearing your search query or switching categories to browse more apps.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
-                  setActiveTab("catalog")
-                  setStatusFilter("update_available")
+                  setSearchQuery("")
+                  setSelectedCategory("All")
+                  setStatusFilter("all")
                 }}
-                className={`px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center space-x-1.5 text-amber-400 hover:bg-amber-500/10 ${
-                  statusFilter === "update_available" ? "bg-amber-500/20" : ""
-                }`}
+                className="text-xs h-8 mt-2"
               >
-                <ArrowUpCircle className="h-3.5 w-3.5" />
-                <span>{updatesCount} updates</span>
-              </button>
-            )}
-          </div>
-
-          {/* Status Quick Filter (Catalog view only) */}
-          {activeTab === "catalog" && (
-            <div className="flex items-center space-x-1 overflow-x-auto text-xs pb-1 sm:pb-0">
-              <span className="text-[11px] text-zinc-500 mr-1 hidden sm:inline">Status:</span>
-              <button
-                onClick={() => setStatusFilter("all")}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                  statusFilter === "all"
-                    ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setStatusFilter("installed")}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                  statusFilter === "installed"
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Installed
-              </button>
-              <button
-                onClick={() => setStatusFilter("update_available")}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                  statusFilter === "update_available"
-                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Updates ({updatesCount})
-              </button>
-              <button
-                onClick={() => setStatusFilter("not_installed")}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                  statusFilter === "not_installed"
-                    ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Not Installed
-              </button>
+                Reset Filters
+              </Button>
+            </div>
+          ) : viewMode === "grid" ? (
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-l border-t border-zinc-800">
+              {filteredApps.map((app) => (
+                <AppCard
+                  key={app.id}
+                  app={app}
+                  isBusy={!!busyState[app.id]}
+                  busyProgress={busyState[app.id]?.progress || 0}
+                  busyAction={busyState[app.id]?.action || ""}
+                  onLaunch={handleLaunch}
+                  onInstall={handleInstall}
+                  onUpdate={handleUpdate}
+                  onUninstall={handleUninstall}
+                  onSelect={(a) => setSelectedApp(a)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="w-full flex flex-col border-l border-r border-t border-zinc-800">
+              {filteredApps.map((app) => (
+                <AppListItem
+                  key={app.id}
+                  app={app}
+                  isBusy={!!busyState[app.id]}
+                  busyProgress={busyState[app.id]?.progress || 0}
+                  busyAction={busyState[app.id]?.action || ""}
+                  onLaunch={handleLaunch}
+                  onInstall={handleInstall}
+                  onUpdate={handleUpdate}
+                  onUninstall={handleUninstall}
+                  onSelect={(a) => setSelectedApp(a)}
+                />
+              ))}
             </div>
           )}
-
-          {/* Installed Tab Tools */}
-          {activeTab === "installed" && updatesCount > 0 && (
-            <Button
-              size="sm"
-              onClick={handleUpdateAll}
-              className="text-xs h-7 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold space-x-1"
-            >
-              <ArrowUpCircle className="h-3 w-3" />
-              <span>Update All ({updatesCount})</span>
-            </Button>
-          )}
         </div>
-      </div>
-
-      {/* Category Filter Pills (When on Catalog tab) */}
-      {activeTab === "catalog" && manifest?.categories && (
-        <div className="border-b border-zinc-900 bg-zinc-950/40 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto flex items-center space-x-1 overflow-x-auto py-2 text-xs">
-            {manifest.categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-2.5 py-1 rounded-md whitespace-nowrap text-xs transition-colors font-medium ${
-                  selectedCategory === cat
-                    ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
-        {filteredApps.length === 0 ? (
-          <div className="py-20 flex flex-col items-center justify-center text-center space-y-3">
-            <div className="h-12 w-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500">
-              <Search className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm text-zinc-200">No applications match your filter</h3>
-              <p className="text-xs text-zinc-500 mt-1 max-w-sm">
-                Try clearing your search query or switching categories to browse more apps.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSearchQuery("")
-                setSelectedCategory("All")
-                setStatusFilter("all")
-              }}
-              className="text-xs h-8 mt-2"
-            >
-              Reset Filters
-            </Button>
-          </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredApps.map((app) => (
-              <AppCard
-                key={app.id}
-                app={app}
-                isBusy={!!busyState[app.id]}
-                busyProgress={busyState[app.id]?.progress || 0}
-                busyAction={busyState[app.id]?.action || ""}
-                onLaunch={handleLaunch}
-                onInstall={handleInstall}
-                onUpdate={handleUpdate}
-                onUninstall={handleUninstall}
-                onSelect={(a) => setSelectedApp(a)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {filteredApps.map((app) => (
-              <AppListItem
-                key={app.id}
-                app={app}
-                isBusy={!!busyState[app.id]}
-                busyProgress={busyState[app.id]?.progress || 0}
-                busyAction={busyState[app.id]?.action || ""}
-                onLaunch={handleLaunch}
-                onInstall={handleInstall}
-                onUpdate={handleUpdate}
-                onUninstall={handleUninstall}
-                onSelect={(a) => setSelectedApp(a)}
-              />
-            ))}
-          </div>
-        )}
       </main>
 
-      {/* Bottom Status Footer */}
-      <footer className="border-t border-zinc-900 bg-zinc-950/80 px-4 sm:px-6 py-2.5 text-xs text-zinc-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px]">
-          <div className="flex items-center space-x-3">
-            <span>
-              Catalog: <strong className="text-zinc-300 font-semibold">{manifest?.name || "Community Catalog"}</strong>
+      {/* Floating Bottom Navigation Tab Bar */}
+      <nav
+        aria-label="Bottom Navigation"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+      >
+        <div className="pointer-events-auto flex items-center space-x-1 bg-zinc-950/90 backdrop-blur-md border border-zinc-800 p-1.5 shadow-2xl shadow-black/80">
+          {/* App Catalog Tab */}
+          <button
+            onClick={() => {
+              setActiveTab("catalog")
+              setStatusFilter("all")
+            }}
+            className={`px-3 py-1.5 text-xs font-semibold transition-colors flex items-center space-x-2 ${
+              activeTab === "catalog" && statusFilter === "all"
+                ? "bg-zinc-100 text-zinc-950"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+            }`}
+          >
+            <PackageCheck className="h-3.5 w-3.5" />
+            <span>App Catalog</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 font-mono ${
+                activeTab === "catalog" && statusFilter === "all"
+                  ? "bg-zinc-900 text-zinc-200"
+                  : "bg-zinc-800 text-zinc-300"
+              }`}
+            >
+              {apps.length}
             </span>
-            <span>·</span>
-            <span>{apps.length} Total Apps</span>
-            <span>·</span>
-            <span>{installedCount} Installed</span>
-          </div>
-          <div className="flex items-center space-x-3 text-zinc-400">
-            <span>RAM: ~38 MB</span>
-            <span>·</span>
-            <span>Fast Startup (&lt;120ms)</span>
-            <span>·</span>
-            <span className="uppercase text-zinc-300">{systemPlatform} x64</span>
-          </div>
+          </button>
+
+          {/* Installed Tab */}
+          <button
+            onClick={() => {
+              setActiveTab("installed")
+              setStatusFilter("all")
+            }}
+            className={`px-3 py-1.5 text-xs font-semibold transition-colors flex items-center space-x-2 ${
+              activeTab === "installed"
+                ? "bg-zinc-100 text-zinc-950"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+            }`}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <span>Installed</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 font-mono ${
+                activeTab === "installed"
+                  ? "bg-zinc-900 text-zinc-200"
+                  : "bg-zinc-800 text-zinc-300"
+              }`}
+            >
+              {installedCount}
+            </span>
+          </button>
+
+          {/* Updates Tab */}
+          {updatesCount > 0 && (
+            <button
+              onClick={() => {
+                setActiveTab("catalog")
+                setStatusFilter("update_available")
+              }}
+              className={`px-2.5 py-1.5 text-xs font-semibold transition-colors flex items-center space-x-1.5 text-amber-400 hover:bg-amber-500/10 ${
+                statusFilter === "update_available" ? "bg-amber-500/20 text-amber-300" : ""
+              }`}
+            >
+              <ArrowUpCircle className="h-3.5 w-3.5" />
+              <span>{updatesCount} updates</span>
+            </button>
+          )}
+
+          {/* Installed Tab Tools: Update All */}
+          {activeTab === "installed" && updatesCount > 0 && (
+            <>
+              <div className="h-4 w-px bg-zinc-800 mx-1" />
+              <Button
+                size="sm"
+                onClick={handleUpdateAll}
+                className="text-xs h-7 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold space-x-1 px-2.5"
+              >
+                <ArrowUpCircle className="h-3 w-3" />
+                <span>Update All</span>
+              </Button>
+            </>
+          )}
         </div>
-      </footer>
+      </nav>
 
       {/* Manifest Modal */}
       <ManifestModal
@@ -633,6 +709,16 @@ export default function App() {
         onInstall={handleInstall}
         onUpdate={handleUpdate}
         onUninstall={handleUninstall}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        open={settingsModalOpen}
+        onOpenChange={setSettingsModalOpen}
+        settings={launcherSettings}
+        onUpdateSettings={handleUpdateSettings}
+        onResetCatalogOverrides={handleResetCatalogOverrides}
+        systemPlatform={systemPlatform}
       />
     </div>
   )

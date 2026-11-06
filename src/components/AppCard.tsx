@@ -1,6 +1,5 @@
 import React from "react"
 import { Play, Download, ArrowUpCircle, Trash2, ExternalLink, Info, Check } from "lucide-react"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -57,52 +56,44 @@ export function AppCard({
   }
 
   return (
-    <Card className="flex flex-col justify-between group hover:border-zinc-700 transition-all duration-200 bg-zinc-950/70 border-zinc-800/80">
-      <CardHeader className="space-y-3 pb-3">
+    <div className="flex flex-col justify-between border-b border-r border-zinc-800 bg-zinc-950 hover:bg-zinc-900/40 transition-colors group relative min-h-[210px]">
+      {/* Top Body Section */}
+      <div className="p-5 sm:p-6 space-y-3 flex-1">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center space-x-3 min-w-0">
-            <div className="h-11 w-11 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 shadow-sm flex-shrink-0 group-hover:border-zinc-700 transition-colors">
+          <div className="flex items-center space-x-3.5 min-w-0">
+            <div className="h-12 w-12 rounded-none bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 shadow-sm flex-shrink-0 group-hover:border-zinc-700 transition-colors">
               <AppIcon name={app.icon} className="h-6 w-6 text-zinc-100" />
             </div>
             <div className="min-w-0">
               <h3
                 onClick={() => onSelect(app)}
-                className="font-semibold text-sm text-zinc-100 truncate hover:underline cursor-pointer tracking-tight"
+                className="font-semibold text-sm sm:text-base text-zinc-100 truncate hover:underline cursor-pointer tracking-tight"
                 title={app.name}
               >
                 {app.name}
               </h3>
-              <p className="text-xs text-zinc-400 font-mono truncate">{app.author}</p>
+              <p className="text-xs text-zinc-400 font-mono truncate">{app.author || app.category}</p>
             </div>
           </div>
           <div className="flex-shrink-0">{getStatusBadge()}</div>
         </div>
 
-        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed min-h-[36px]">
+        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed min-h-[34px]">
           {app.description}
         </p>
 
-        <div className="flex flex-wrap gap-1.5 pt-1">
-          <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 font-medium border border-zinc-800">
+        <div className="flex items-center gap-2 pt-0.5 text-[11px] font-mono text-zinc-400">
+          <span className="px-2 py-0.5 bg-zinc-900 text-zinc-300 font-medium border border-zinc-800">
             {app.category}
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900/60 text-zinc-400 font-mono border border-zinc-800/60">
-            {app.size}
-          </span>
-          {app.tags.slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-900/40 text-zinc-400 font-mono"
-            >
-              #{tag}
-            </span>
-          ))}
+          <span className="text-zinc-500">{app.size}</span>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardFooter className="flex flex-col gap-2 pt-3 border-t border-zinc-800/60">
+      {/* Divider line touching both ends of the card */}
+      <div className="w-full border-t border-zinc-800 px-5 sm:px-6 py-3 mt-auto bg-zinc-950/60">
         {isBusy ? (
-          <div className="w-full space-y-1.5 py-1">
+          <div className="w-full space-y-1.5 py-0.5">
             <div className="flex justify-between text-[11px] font-mono text-zinc-400">
               <span className="capitalize">{busyAction}...</span>
               <span>{busyProgress}%</span>
@@ -180,7 +171,7 @@ export function AppCard({
             </div>
           </div>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
