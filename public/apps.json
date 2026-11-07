@@ -141,6 +141,40 @@
           "downloadUrl": "https://github.com/hariharan-uiux/linux-system-controller/releases/latest"
         }
       }
+    },
+    {
+      "id": "structured-planner",
+      "name": "Structured Planner",
+      "description": "Visual timeline daily routine and task planner with time blocks, habit streaks, and focus metrics.",
+      "icon": "Calendar",
+      "category": "Productivity",
+      "tags": [
+        "Planner",
+        "Calendar",
+        "Productivity",
+        "Habits",
+        "Focus",
+        "Open Source"
+      ],
+      "version": "1.0.0",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "HariHaran",
+      "size": "40 MB",
+      "homepage": "https://github.com/hariharan-uiux/structured-planner",
+      "github": "hariharan-uiux/structured-planner",
+      "installTargets": {
+        "linux": {
+          "type": "appimage",
+          "command": "structured-planner.AppImage",
+          "downloadUrl": "https://github.com/hariharan-uiux/structured-planner/releases/latest"
+        },
+        "windows": {
+          "type": "exe",
+          "command": "StructuredPlanner-Setup.exe",
+          "downloadUrl": "https://github.com/hariharan-uiux/structured-planner/releases/latest"
+        }
+      }
     }
   ]
 }
