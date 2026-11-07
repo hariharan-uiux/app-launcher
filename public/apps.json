@@ -111,6 +111,36 @@
           "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics/releases/latest"
         }
       }
+    },
+    {
+      "id": "linux-system-controller",
+      "name": "Linux System Controller",
+      "description": "Local Linux hardware controller and telemetry dashboard for PipeWire audio, display brightness, screen resolution, and power profiles.",
+      "icon": "Sliders",
+      "category": "Utilities",
+      "tags": [
+        "Linux",
+        "System",
+        "PipeWire",
+        "Wayland",
+        "GNOME",
+        "Telemetry",
+        "Open Source"
+      ],
+      "version": "1.0.0",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "HariHaran",
+      "size": "32 MB",
+      "homepage": "https://github.com/hariharan-uiux/linux-system-controller",
+      "github": "hariharan-uiux/linux-system-controller",
+      "installTargets": {
+        "linux": {
+          "type": "appimage",
+          "command": "linux-system-controller.AppImage",
+          "downloadUrl": "https://github.com/hariharan-uiux/linux-system-controller/releases/latest"
+        }
+      }
     }
   ]
 }

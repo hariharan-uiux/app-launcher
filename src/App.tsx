@@ -327,6 +327,10 @@ export default function App() {
 
   // App Action: Launch
   const handleLaunch = async (app: AppItem) => {
+    if (systemPlatform === "windows" && !app.installTargets?.windows) {
+      showToast(`${app.name} is only supported on Linux`, "error")
+      return
+    }
     const target = systemPlatform === "windows" ? app.installTargets?.windows : app.installTargets?.linux
     const cmd = target?.command || app.id
 
@@ -345,6 +349,10 @@ export default function App() {
 
   // App Action: Install (real Electron installation with streaming progress)
   const handleInstall = async (app: AppItem) => {
+    if (systemPlatform === "windows" && !app.installTargets?.windows) {
+      showToast(`${app.name} is only supported on Linux`, "error")
+      return
+    }
     setBusyState((prev) => ({ ...prev, [app.id]: { action: "installing", progress: 5 } }))
     showToast(`Installing ${app.name}...`, "info")
 
