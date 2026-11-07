@@ -1,13 +1,13 @@
 {
   "$schema": "./schema/catalog.schema.json",
-  "name": "Relay App Catalog",
-  "description": "Featured application distribution catalog for Relay peer-to-peer file transfer",
+  "name": "App Catalog",
+  "description": "Featured application distribution catalog with automated GitHub release tracking",
   "version": "1.0.0",
   "updatedAt": "2026-11-07T03:00:00Z",
   "categories": [
     "All",
-    "Productivity",
     "Utilities",
+    "Productivity",
     "Networking"
   ],
   "apps": [
@@ -75,6 +75,40 @@
           "type": "exe",
           "command": "FolioBoard-Setup.exe",
           "downloadUrl": "https://github.com/hariharan-uiux/folioboard/releases/latest"
+        }
+      }
+    },
+    {
+      "id": "pi-metrics",
+      "name": "Pi Metrics",
+      "description": "Real-time hardware monitoring and telemetry dashboard for Raspberry Pi and Linux systems.",
+      "icon": "Gauge",
+      "category": "Utilities",
+      "tags": [
+        "Hardware",
+        "Monitoring",
+        "Raspberry Pi",
+        "Telemetry",
+        "Linux",
+        "Open Source"
+      ],
+      "version": "1.0.5",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "HariHaran",
+      "size": "38 MB",
+      "homepage": "https://github.com/hariharan-uiux/pi-metrics",
+      "github": "hariharan-uiux/pi-metrics",
+      "installTargets": {
+        "linux": {
+          "type": "appimage",
+          "command": "pi-metrics.AppImage",
+          "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics/releases/latest"
+        },
+        "windows": {
+          "type": "exe",
+          "command": "PiMetrics-Setup.exe",
+          "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics/releases/latest"
         }
       }
     }
