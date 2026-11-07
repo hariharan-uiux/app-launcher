@@ -6,9 +6,9 @@
   "updatedAt": "2026-11-07T03:00:00Z",
   "categories": [
     "All",
+    "Productivity",
     "Utilities",
-    "Networking",
-    "Productivity"
+    "Networking"
   ],
   "apps": [
     {
@@ -42,6 +42,39 @@
           "type": "exe",
           "command": "Relay-Setup.exe",
           "downloadUrl": "https://github.com/hariharan-uiux/Relay/releases/latest"
+        }
+      }
+    },
+    {
+      "id": "folioboard",
+      "name": "FolioBoard",
+      "description": "Interactive developer portfolio builder and customizable personal showcase dashboard.",
+      "icon": "LayoutGrid",
+      "category": "Productivity",
+      "tags": [
+        "Portfolio",
+        "Dashboard",
+        "Showcase",
+        "Personal Branding",
+        "Open Source"
+      ],
+      "version": "1.0.0",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "HariHaran",
+      "size": "45 MB",
+      "homepage": "https://github.com/hariharan-uiux/folioboard",
+      "github": "hariharan-uiux/folioboard",
+      "installTargets": {
+        "linux": {
+          "type": "appimage",
+          "command": "folioboard.AppImage",
+          "downloadUrl": "https://github.com/hariharan-uiux/folioboard/releases/latest"
+        },
+        "windows": {
+          "type": "exe",
+          "command": "FolioBoard-Setup.exe",
+          "downloadUrl": "https://github.com/hariharan-uiux/folioboard/releases/latest"
         }
       }
     }
