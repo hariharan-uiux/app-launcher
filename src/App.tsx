@@ -29,7 +29,7 @@ import { AppListItem } from "@/components/AppListItem"
 import { ManifestModal } from "@/components/ManifestModal"
 import { AppDetailModal } from "@/components/AppDetailModal"
 import { SettingsModal } from "@/components/SettingsModal"
-import { AppItem, CatalogManifest, ViewMode, StatusFilter } from "@/types/catalog"
+import { AppItem, CatalogManifest, ViewMode, StatusFilter, AppStatus } from "@/types/catalog"
 import { LauncherSettings, DEFAULT_LAUNCHER_SETTINGS } from "@/types/settings"
 import { checkAppUpdates } from "@/lib/githubUpdates"
 
@@ -43,7 +43,12 @@ declare global {
     electronAPI?: {
       readLocalCatalog: (filePath?: string) => Promise<{ ok: boolean; data?: CatalogManifest; error?: string }>
       saveLocalCatalog: (filePath: string | undefined, data: CatalogManifest) => Promise<{ ok: boolean; error?: string }>
-      launchApp: (command: string, appName: string) => Promise<{ ok: boolean; message?: string; error?: string }>
+      getInstalledState: () => Promise<{ ok: boolean; installed?: Record<string, { status: string; installedVersion: string; executablePath?: string }> }>
+      installApp: (app: AppItem) => Promise<{ ok: boolean; version?: string; executablePath?: string; error?: string }>
+      launchApp: (command: string, appName: string, appId?: string) => Promise<{ ok: boolean; message?: string; error?: string }>
+      updateApp: (app: AppItem) => Promise<{ ok: boolean; version?: string; executablePath?: string; error?: string }>
+      uninstallApp: (appId: string) => Promise<{ ok: boolean; message?: string; error?: string }>
+      onInstallProgress: (callback: (data: { appId: string; progress: number; statusText: string; action: string }) => void) => () => void
       openExternalUrl: (url: string) => Promise<{ ok: boolean; error?: string }>
       getSystemInfo: () => Promise<{ platform: string; arch: string; version: string }>
       getSettings?: () => Promise<{ ok: boolean; settings?: any }>
@@ -178,6 +183,27 @@ export default function App() {
       loadManifestFromSource("/apps.json", "default")
     }
 
+    // Check true installed apps state from local disk
+    if (window.electronAPI?.getInstalledState) {
+      window.electronAPI.getInstalledState().then((res) => {
+        if (res.ok && res.installed) {
+          setApps((prevApps) =>
+            prevApps.map((a) => {
+              const installed = res.installed?.[a.id]
+              if (installed) {
+                return {
+                  ...a,
+                  status: (installed.status || "installed") as AppStatus,
+                  installedVersion: installed.installedVersion || a.version,
+                }
+              }
+              return a
+            })
+          )
+        }
+      })
+    }
+
     // Load settings from localStorage or Electron
     const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
     if (savedSettings) {
@@ -201,6 +227,34 @@ export default function App() {
     } else {
       const isWin = navigator.userAgent.toLowerCase().includes("windows")
       setSystemPlatform(isWin ? "windows" : "linux")
+    }
+  }, [])
+
+  // Listen to real-time install/update progress events from Electron
+  useEffect(() => {
+    if (window.electronAPI?.onInstallProgress) {
+      const cleanup = window.electronAPI.onInstallProgress((data) => {
+        setBusyState((prev) => ({
+          ...prev,
+          [data.appId]: {
+            action: data.action || "installing",
+            progress: data.progress,
+          },
+        }))
+        if (data.statusText) {
+          showToast(data.statusText, "info")
+        }
+        if (data.progress >= 100) {
+          setTimeout(() => {
+            setBusyState((prev) => {
+              const next = { ...prev }
+              delete next[data.appId]
+              return next
+            })
+          }, 600)
+        }
+      })
+      return cleanup
     }
   }, [])
 
@@ -276,77 +330,141 @@ export default function App() {
     const target = systemPlatform === "windows" ? app.installTargets?.windows : app.installTargets?.linux
     const cmd = target?.command || app.id
 
-    if (window.electronAPI) {
+    if (window.electronAPI?.launchApp) {
       showToast(`Launching ${app.name}...`, "info")
-      const res = await window.electronAPI.launchApp(cmd, app.name)
+      const res = await window.electronAPI.launchApp(cmd, app.name, app.id)
       if (res.ok) {
         showToast(`Running ${app.name}`, "success")
       } else {
         showToast(res.error || `Could not execute ${cmd}`, "error")
       }
     } else {
-      showToast(`[Simulated Launch] Executing command: ${cmd}`, "success")
+      showToast(`[Web Demo] Executing command: ${cmd}`, "success")
     }
   }
 
-  // App Action: Install (simulated progress with state update)
-  const handleInstall = (app: AppItem) => {
+  // App Action: Install (real Electron installation with streaming progress)
+  const handleInstall = async (app: AppItem) => {
     setBusyState((prev) => ({ ...prev, [app.id]: { action: "installing", progress: 5 } }))
     showToast(`Installing ${app.name}...`, "info")
 
-    let current = 5
-    const interval = setInterval(() => {
-      current += Math.floor(Math.random() * 25) + 10
-      if (current >= 100) {
-        clearInterval(interval)
+    if (window.electronAPI?.installApp) {
+      try {
+        const res = await window.electronAPI.installApp(app)
+        if (res.ok) {
+          const nextApps = apps.map((a) =>
+            a.id === app.id
+              ? { ...a, status: "installed" as const, installedVersion: res.version || a.version }
+              : a
+          )
+          persistAppChange(nextApps)
+          showToast(`${app.name} v${res.version || app.version} installed successfully!`, "success")
+        } else {
+          showToast(res.error || `Failed to install ${app.name}`, "error")
+        }
+      } catch (err: any) {
+        showToast(err.message || `Installation error for ${app.name}`, "error")
+      } finally {
         setBusyState((prev) => {
           const next = { ...prev }
           delete next[app.id]
           return next
         })
-        const nextApps = apps.map((a) =>
-          a.id === app.id
-            ? { ...a, status: "installed" as const, installedVersion: a.version }
-            : a
-        )
-        persistAppChange(nextApps)
-        showToast(`${app.name} v${app.version} installed successfully`, "success")
-      } else {
-        setBusyState((prev) => ({ ...prev, [app.id]: { action: "installing", progress: current } }))
       }
-    }, 180)
+    } else {
+      // Standalone web demo simulation
+      let current = 5
+      const interval = setInterval(() => {
+        current += Math.floor(Math.random() * 25) + 10
+        if (current >= 100) {
+          clearInterval(interval)
+          setBusyState((prev) => {
+            const next = { ...prev }
+            delete next[app.id]
+            return next
+          })
+          const nextApps = apps.map((a) =>
+            a.id === app.id
+              ? { ...a, status: "installed" as const, installedVersion: a.version }
+              : a
+          )
+          persistAppChange(nextApps)
+          showToast(`${app.name} v${app.version} installed successfully`, "success")
+        } else {
+          setBusyState((prev) => ({ ...prev, [app.id]: { action: "installing", progress: current } }))
+        }
+      }, 180)
+    }
   }
 
-  // App Action: Update
-  const handleUpdate = (app: AppItem) => {
+  // App Action: Update (real Electron update download and replacement)
+  const handleUpdate = async (app: AppItem) => {
     setBusyState((prev) => ({ ...prev, [app.id]: { action: "updating", progress: 10 } }))
     showToast(`Updating ${app.name} to v${app.version}...`, "info")
 
-    let current = 10
-    const interval = setInterval(() => {
-      current += Math.floor(Math.random() * 25) + 15
-      if (current >= 100) {
-        clearInterval(interval)
+    if (window.electronAPI?.updateApp) {
+      try {
+        const res = await window.electronAPI.updateApp(app)
+        if (res.ok) {
+          const nextApps = apps.map((a) =>
+            a.id === app.id
+              ? { ...a, status: "installed" as const, installedVersion: res.version || a.version }
+              : a
+          )
+          persistAppChange(nextApps)
+          showToast(`${app.name} updated to v${res.version || app.version}!`, "success")
+        } else {
+          showToast(res.error || `Failed to update ${app.name}`, "error")
+        }
+      } catch (err: any) {
+        showToast(err.message || `Update error for ${app.name}`, "error")
+      } finally {
         setBusyState((prev) => {
           const next = { ...prev }
           delete next[app.id]
           return next
         })
-        const nextApps = apps.map((a) =>
-          a.id === app.id
-            ? { ...a, status: "installed" as const, installedVersion: a.version }
-            : a
-        )
-        persistAppChange(nextApps)
-        showToast(`${app.name} updated to v${app.version}`, "success")
-      } else {
-        setBusyState((prev) => ({ ...prev, [app.id]: { action: "updating", progress: current } }))
       }
-    }, 160)
+    } else {
+      // Standalone web demo simulation
+      let current = 10
+      const interval = setInterval(() => {
+        current += Math.floor(Math.random() * 25) + 15
+        if (current >= 100) {
+          clearInterval(interval)
+          setBusyState((prev) => {
+            const next = { ...prev }
+            delete next[app.id]
+            return next
+          })
+          const nextApps = apps.map((a) =>
+            a.id === app.id
+              ? { ...a, status: "installed" as const, installedVersion: a.version }
+              : a
+          )
+          persistAppChange(nextApps)
+          showToast(`${app.name} updated to v${app.version}`, "success")
+        } else {
+          setBusyState((prev) => ({ ...prev, [app.id]: { action: "updating", progress: current } }))
+        }
+      }, 160)
+    }
   }
 
   // App Action: Uninstall
-  const handleUninstall = (app: AppItem) => {
+  const handleUninstall = async (app: AppItem) => {
+    if (window.electronAPI?.uninstallApp) {
+      try {
+        const res = await window.electronAPI.uninstallApp(app.id)
+        if (!res.ok) {
+          showToast(res.error || `Failed to uninstall ${app.name}`, "error")
+          return
+        }
+      } catch (err: any) {
+        showToast(err.message || `Failed to uninstall ${app.name}`, "error")
+        return
+      }
+    }
     const nextApps = apps.map((a) =>
       a.id === app.id
         ? { ...a, status: "not_installed" as const, installedVersion: null }
