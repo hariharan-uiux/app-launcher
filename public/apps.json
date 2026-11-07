@@ -3,7 +3,7 @@
   "name": "Community App Catalog",
   "description": "Curated repository of essential cross-platform desktop applications",
   "version": "1.0.0",
-  "updatedAt": "2026-11-06T22:45:00Z",
+  "updatedAt": "2026-11-07T02:40:00Z",
   "categories": [
     "All",
     "Developer",
@@ -227,6 +227,132 @@
       "installTargets": {
         "linux": { "type": "package", "command": "flameshot" },
         "windows": { "type": "exe", "command": "flameshot.exe" }
+      }
+    },
+    {
+      "id": "folioboard",
+      "name": "Folioboard",
+      "description": "Visual infinite canvas for moodboards, creative brainstorms, notes, and interactive design systems.",
+      "icon": "Layers",
+      "category": "Productivity",
+      "tags": ["Canvas", "Design", "Brainstorm", "Notes", "React", "TypeScript"],
+      "version": "1.0.0",
+      "installedVersion": "1.0.0",
+      "status": "installed",
+      "author": "HariHaran",
+      "size": "45 MB",
+      "homepage": "https://github.com/hariharan-uiux/folioboard",
+      "installTargets": {
+        "linux": { "type": "web", "command": "cd /var/lib/openbot/OpenBot/Shared/repos/folioboard && npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/folioboard" },
+        "windows": { "type": "web", "command": "npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/folioboard" }
+      }
+    },
+    {
+      "id": "linux-system-controller",
+      "name": "Linux System Controller",
+      "description": "Local Linux system controller & hardware telemetry dashboard for PipeWire audio, display, and vitals.",
+      "icon": "Sliders",
+      "category": "Utilities",
+      "tags": ["Linux", "Hardware", "PipeWire", "Dashboard", "Telemetry", "Python"],
+      "version": "1.2.0",
+      "installedVersion": "1.2.0",
+      "status": "installed",
+      "author": "HariHaran",
+      "size": "35 MB",
+      "homepage": "https://github.com/hariharan-uiux/linux-system-controller",
+      "installTargets": {
+        "linux": { "type": "binary", "command": "/var/lib/openbot/OpenBot/Shared/repos/linux-system-controller/run.sh --gui", "downloadUrl": "https://github.com/hariharan-uiux/linux-system-controller" },
+        "windows": { "type": "binary", "command": "python gui_server.py", "downloadUrl": "https://github.com/hariharan-uiux/linux-system-controller" }
+      }
+    },
+    {
+      "id": "structured-planner",
+      "name": "Structured Planner",
+      "description": "Visual day planner, timeline schedule, and habit tracker for Web, iOS, and Android.",
+      "icon": "Calendar",
+      "category": "Productivity",
+      "tags": ["Planner", "Timeline", "Productivity", "Calendar", "Capacitor", "React"],
+      "version": "1.0.0",
+      "installedVersion": "1.0.0",
+      "status": "installed",
+      "author": "HariHaran",
+      "size": "28 MB",
+      "homepage": "https://github.com/hariharan-uiux/structured-planner",
+      "installTargets": {
+        "linux": { "type": "web", "command": "cd /var/lib/openbot/OpenBot/Shared/repos/structured-planner && npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/structured-planner" },
+        "windows": { "type": "web", "command": "npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/structured-planner" }
+      }
+    },
+    {
+      "id": "pi-metrics",
+      "name": "Pi Metrics",
+      "description": "Real-time Raspberry Pi 5 hardware telemetry dashboard and native Linux desktop monitor with GTK3.",
+      "icon": "Gauge",
+      "category": "Utilities",
+      "tags": ["Raspberry Pi", "Hardware", "Telemetry", "Monitoring", "GTK3", "IoT"],
+      "version": "1.0.5",
+      "installedVersion": "1.0.5",
+      "status": "installed",
+      "author": "HariHaran",
+      "size": "22 MB",
+      "homepage": "https://github.com/hariharan-uiux/pi-metrics",
+      "installTargets": {
+        "linux": { "type": "binary", "command": "python3 /var/lib/openbot/OpenBot/Shared/repos/pi-metrics/server.py", "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics" },
+        "windows": { "type": "exe", "command": "python server.py", "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics" }
+      }
+    },
+    {
+      "id": "project-t",
+      "name": "Project-T (MotoHub & Vehicle Tracker)",
+      "description": "Comprehensive motorcycle and vehicle maintenance tracking, service logs, checklists, and expense manager.",
+      "icon": "Car",
+      "category": "Utilities",
+      "tags": ["Automotive", "Motorcycle", "Maintenance", "Vehicle", "React Native", "Expo"],
+      "version": "1.0.0",
+      "installedVersion": "1.0.0",
+      "status": "installed",
+      "author": "HariHaran",
+      "size": "55 MB",
+      "homepage": "https://github.com/hariharan-uiux/Project-T",
+      "installTargets": {
+        "linux": { "type": "web", "command": "cd /var/lib/openbot/OpenBot/Shared/repos/Project-T/MotoHub && npm run web", "downloadUrl": "https://github.com/hariharan-uiux/Project-T" },
+        "windows": { "type": "web", "command": "npm run web", "downloadUrl": "https://github.com/hariharan-uiux/Project-T" }
+      }
+    },
+    {
+      "id": "aix-vault",
+      "name": "AIX Vault",
+      "description": "All-in-one curated dashboard for discovering developer and designer tools, AI agents, and workflows.",
+      "icon": "Sparkles",
+      "category": "AI & Tools",
+      "tags": ["AI Tools", "Developer Tools", "Design", "Directory", "Resources", "TypeScript"],
+      "version": "1.1.0",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "HariHaran",
+      "size": "15 MB",
+      "homepage": "https://github.com/hariharan-uiux/aix-vault",
+      "installTargets": {
+        "linux": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/aix-vault" },
+        "windows": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/aix-vault" }
+      }
+    },
+    {
+      "id": "relay",
+      "name": "Relay",
+      "description": "Private, fast peer-to-peer file sharing between devices on the same local network without cloud or accounts.",
+      "icon": "Radio",
+      "category": "Utilities",
+      "tags": ["P2P", "File Sharing", "Local Network", "Privacy", "Offline"],
+      "version": "1.0.2",
+      "installedVersion": null,
+      "status": "not_installed",
+      "author": "HariHaran",
+      "size": "18 MB",
+      "homepage": "https://github.com/hariharan-uiux/Relay",
+      "installTargets": {
+        "linux": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/Relay" },
+        "windows": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/Relay" }
       }
     }
   ]

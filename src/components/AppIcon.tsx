@@ -19,6 +19,13 @@ import {
   Globe,
   HardDrive,
   Folder,
+  LayoutGrid,
+  Calendar,
+  Sliders,
+  Gauge,
+  Car,
+  Radio,
+  Activity,
 } from "lucide-react"
 
 interface AppIconProps {
@@ -46,6 +53,13 @@ const iconMap: Record<string, React.ElementType> = {
   Globe,
   HardDrive,
   Folder,
+  LayoutGrid,
+  Calendar,
+  Sliders,
+  Gauge,
+  Car,
+  Radio,
+  Activity,
 }
 
 export function AppIcon({ name, className = "h-5 w-5" }: AppIconProps) {
