@@ -31,6 +31,7 @@ import { AppDetailModal } from "@/components/AppDetailModal"
 import { SettingsModal } from "@/components/SettingsModal"
 import { AppItem, CatalogManifest, ViewMode, StatusFilter } from "@/types/catalog"
 import { LauncherSettings, DEFAULT_LAUNCHER_SETTINGS } from "@/types/settings"
+import { checkAppUpdates } from "@/lib/githubUpdates"
 
 const LOCAL_STORAGE_KEY = "app_launcher_custom_catalog"
 const MANIFEST_SOURCE_KEY = "app_launcher_manifest_source"
@@ -65,6 +66,7 @@ export default function App() {
   const [launcherSettings, setLauncherSettings] = useState<LauncherSettings>(DEFAULT_LAUNCHER_SETTINGS)
   const [selectedApp, setSelectedApp] = useState<AppItem | null>(null)
   const [systemPlatform, setSystemPlatform] = useState<string>("linux")
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -140,6 +142,22 @@ export default function App() {
       setManifest(data)
       setApps(initialApps)
       localStorage.setItem(MANIFEST_SOURCE_KEY, JSON.stringify({ source, type }))
+
+      // Background check for GitHub releases on load
+      setTimeout(() => {
+        checkAppUpdates(initialApps)
+          .then(({ updatedApps, updatesFound }) => {
+            if (updatesFound > 0) {
+              persistAppChange(updatedApps)
+              showToast(
+                `Found ${updatesFound} new app update${updatesFound > 1 ? "s" : ""} on GitHub!`,
+                "info"
+              )
+            }
+          })
+          .catch(() => {})
+      }, 700)
+
       return true
     } catch (err: any) {
       showToast(err.message || "Failed to load manifest", "error")
@@ -216,6 +234,41 @@ export default function App() {
       }
     })
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(overrides))
+  }
+
+  // Keep selectedApp synchronized with apps updates
+  useEffect(() => {
+    if (selectedApp) {
+      const fresh = apps.find((a) => a.id === selectedApp.id)
+      if (fresh) setSelectedApp(fresh)
+    }
+  }, [apps])
+
+  // Manual trigger to check GitHub Releases API for all catalog apps
+  const handleCheckAllUpdates = async (): Promise<number> => {
+    if (apps.length === 0) return 0
+    setIsCheckingUpdates(true)
+    showToast("Checking GitHub for app updates...", "info")
+
+    try {
+      const { updatedApps, updatesFound } = await checkAppUpdates(apps)
+      persistAppChange(updatedApps)
+
+      if (updatesFound > 0) {
+        showToast(
+          `Found ${updatesFound} new app update${updatesFound > 1 ? "s" : ""} on GitHub!`,
+          "success"
+        )
+      } else {
+        showToast("All catalog apps are up to date with GitHub releases", "success")
+      }
+      return updatesFound
+    } catch (err: any) {
+      showToast(err.message || "Failed to check GitHub releases", "error")
+      return 0
+    } finally {
+      setIsCheckingUpdates(false)
+    }
   }
 
   // App Action: Launch
@@ -430,6 +483,19 @@ export default function App() {
                 <List className="h-3.5 w-3.5" />
               </button>
             </div>
+
+            {/* Check Updates Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCheckAllUpdates}
+              disabled={isCheckingUpdates}
+              className="text-xs h-8 border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:text-zinc-100 px-2.5"
+              title="Check GitHub for latest app releases"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 sm:mr-1.5 ${isCheckingUpdates ? "animate-spin text-emerald-400" : ""}`} />
+              <span className="hidden sm:inline">{isCheckingUpdates ? "Checking..." : "Check Updates"}</span>
+            </Button>
 
             {/* Manifest Switcher Button */}
             <Button
@@ -719,6 +785,7 @@ export default function App() {
         onUpdateSettings={handleUpdateSettings}
         onResetCatalogOverrides={handleResetCatalogOverrides}
         systemPlatform={systemPlatform}
+        onCheckAppUpdates={handleCheckAllUpdates}
       />
     </div>
   )

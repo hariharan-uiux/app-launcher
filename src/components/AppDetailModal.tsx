@@ -1,5 +1,5 @@
 import React from "react"
-import { Play, Download, ArrowUpCircle, Trash2, ExternalLink, Terminal, Laptop, Monitor } from "lucide-react"
+import { Play, Download, ArrowUpCircle, Trash2, ExternalLink, Terminal, Laptop, Monitor, GitBranch } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -124,6 +124,51 @@ export function AppDetailModal({
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* GitHub Repository Source */}
+          {app.github && (
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-semibold text-zinc-400">GitHub Source</span>
+              <div className="flex items-center justify-between p-2 bg-zinc-900/40 border border-zinc-800/60 font-mono text-[11px]">
+                <span className="flex items-center gap-1.5 text-zinc-300">
+                  <GitBranch className="h-3.5 w-3.5 text-zinc-400" />
+                  {app.github}
+                </span>
+                <a
+                  href={`https://github.com/${app.github}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-zinc-400 hover:text-zinc-100 text-[10px] underline flex items-center gap-1"
+                >
+                  <span>Releases & Code</span>
+                  <ExternalLink className="h-2.5 w-2.5" />
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Release Notes */}
+          {app.releaseNotes && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-emerald-400">Release Notes (v{app.version})</span>
+                {app.releaseUrl && (
+                  <a
+                    href={app.releaseUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] text-zinc-400 hover:text-zinc-200 underline flex items-center gap-1"
+                  >
+                    <span>View on GitHub</span>
+                    <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                )}
+              </div>
+              <pre className="p-3 bg-zinc-900/60 border border-emerald-950/60 text-zinc-300 font-sans text-xs whitespace-pre-wrap max-h-36 overflow-y-auto leading-relaxed">
+                {app.releaseNotes}
+              </pre>
             </div>
           )}
         </div>

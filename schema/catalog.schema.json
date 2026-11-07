@@ -38,6 +38,9 @@
           "author": { "type": "string" },
           "size": { "type": "string" },
           "homepage": { "type": "string" },
+          "github": { "type": "string" },
+          "releaseNotes": { "type": "string" },
+          "releaseUrl": { "type": "string" },
           "installTargets": {
             "type": "object",
             "properties": {

@@ -20,6 +20,9 @@ export interface AppItem {
   author: string
   size: string
   homepage?: string
+  github?: string
+  releaseNotes?: string
+  releaseUrl?: string
   installTargets?: {
     linux?: InstallTarget
     windows?: InstallTarget

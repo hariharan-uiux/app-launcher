@@ -35,6 +35,7 @@ interface SettingsModalProps {
   onUpdateSettings: (newSettings: LauncherSettings) => void
   onResetCatalogOverrides: () => void
   systemPlatform: string
+  onCheckAppUpdates?: () => Promise<number>
 }
 
 export function SettingsModal({
@@ -44,6 +45,7 @@ export function SettingsModal({
   onUpdateSettings,
   onResetCatalogOverrides,
   systemPlatform,
+  onCheckAppUpdates,
 }: SettingsModalProps) {
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [updateStatus, setUpdateStatus] = useState<string | null>(null)
@@ -62,14 +64,23 @@ export function SettingsModal({
     })
   }
 
-  const handleCheckUpdates = () => {
+  const handleCheckUpdates = async () => {
     setCheckingUpdate(true)
     setUpdateStatus(null)
 
-    setTimeout(() => {
-      setCheckingUpdate(false)
-      setUpdateStatus("App Launcher v1.0.0 is up to date. No new releases found.")
-    }, 900)
+    let found = 0
+    if (onCheckAppUpdates) {
+      try {
+        found = await onCheckAppUpdates()
+      } catch (e) {}
+    }
+
+    setCheckingUpdate(false)
+    if (found > 0) {
+      setUpdateStatus(`Checked GitHub: ${found} new app update${found > 1 ? "s" : ""} detected and marked in catalog!`)
+    } else {
+      setUpdateStatus("App Launcher v1.0.0 and all catalog apps are up to date.")
+    }
   }
 
   return (

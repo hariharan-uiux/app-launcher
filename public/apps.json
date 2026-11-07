@@ -26,6 +26,7 @@
       "author": "Microsoft",
       "size": "95 MB",
       "homepage": "https://code.visualstudio.com",
+      "github": "microsoft/vscode",
       "installTargets": {
         "linux": { "type": "binary", "command": "code" },
         "windows": { "type": "binary", "command": "code.cmd" }
@@ -224,6 +225,7 @@
       "author": "Flameshot Team",
       "size": "18 MB",
       "homepage": "https://flameshot.org",
+      "github": "flameshot-org/flameshot",
       "installTargets": {
         "linux": { "type": "package", "command": "flameshot" },
         "windows": { "type": "exe", "command": "flameshot.exe" }
@@ -242,6 +244,7 @@
       "author": "HariHaran",
       "size": "45 MB",
       "homepage": "https://github.com/hariharan-uiux/folioboard",
+      "github": "hariharan-uiux/folioboard",
       "installTargets": {
         "linux": { "type": "web", "command": "cd /var/lib/openbot/OpenBot/Shared/repos/folioboard && npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/folioboard" },
         "windows": { "type": "web", "command": "npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/folioboard" }
@@ -260,6 +263,7 @@
       "author": "HariHaran",
       "size": "35 MB",
       "homepage": "https://github.com/hariharan-uiux/linux-system-controller",
+      "github": "hariharan-uiux/linux-system-controller",
       "installTargets": {
         "linux": { "type": "binary", "command": "/var/lib/openbot/OpenBot/Shared/repos/linux-system-controller/run.sh --gui", "downloadUrl": "https://github.com/hariharan-uiux/linux-system-controller" },
         "windows": { "type": "binary", "command": "python gui_server.py", "downloadUrl": "https://github.com/hariharan-uiux/linux-system-controller" }
@@ -278,6 +282,7 @@
       "author": "HariHaran",
       "size": "28 MB",
       "homepage": "https://github.com/hariharan-uiux/structured-planner",
+      "github": "hariharan-uiux/structured-planner",
       "installTargets": {
         "linux": { "type": "web", "command": "cd /var/lib/openbot/OpenBot/Shared/repos/structured-planner && npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/structured-planner" },
         "windows": { "type": "web", "command": "npm run dev", "downloadUrl": "https://github.com/hariharan-uiux/structured-planner" }
@@ -296,6 +301,7 @@
       "author": "HariHaran",
       "size": "22 MB",
       "homepage": "https://github.com/hariharan-uiux/pi-metrics",
+      "github": "hariharan-uiux/pi-metrics",
       "installTargets": {
         "linux": { "type": "binary", "command": "python3 /var/lib/openbot/OpenBot/Shared/repos/pi-metrics/server.py", "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics" },
         "windows": { "type": "exe", "command": "python server.py", "downloadUrl": "https://github.com/hariharan-uiux/pi-metrics" }
@@ -314,6 +320,7 @@
       "author": "HariHaran",
       "size": "55 MB",
       "homepage": "https://github.com/hariharan-uiux/Project-T",
+      "github": "hariharan-uiux/Project-T",
       "installTargets": {
         "linux": { "type": "web", "command": "cd /var/lib/openbot/OpenBot/Shared/repos/Project-T/MotoHub && npm run web", "downloadUrl": "https://github.com/hariharan-uiux/Project-T" },
         "windows": { "type": "web", "command": "npm run web", "downloadUrl": "https://github.com/hariharan-uiux/Project-T" }
@@ -332,6 +339,7 @@
       "author": "HariHaran",
       "size": "15 MB",
       "homepage": "https://github.com/hariharan-uiux/aix-vault",
+      "github": "hariharan-uiux/aix-vault",
       "installTargets": {
         "linux": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/aix-vault" },
         "windows": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/aix-vault" }
@@ -350,6 +358,7 @@
       "author": "HariHaran",
       "size": "18 MB",
       "homepage": "https://github.com/hariharan-uiux/Relay",
+      "github": "hariharan-uiux/Relay",
       "installTargets": {
         "linux": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/Relay" },
         "windows": { "type": "web", "downloadUrl": "https://github.com/hariharan-uiux/Relay" }
