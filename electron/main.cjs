@@ -51,8 +51,12 @@ function createWindow() {
   const devUrl = 'http://localhost:3300';
   const prodIndex = path.join(__dirname, '../dist/index.html');
 
-  if (isDev && !fs.existsSync(prodIndex)) {
-    mainWindow.loadURL(devUrl);
+  if (isDev) {
+    mainWindow.loadURL(devUrl).catch(() => {
+      if (fs.existsSync(prodIndex)) {
+        mainWindow.loadFile(prodIndex);
+      }
+    });
   } else if (fs.existsSync(prodIndex)) {
     mainWindow.loadFile(prodIndex);
   } else {
