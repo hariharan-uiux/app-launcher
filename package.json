@@ -1,6 +1,6 @@
 {
   "name": "personal-app-launcher",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Ultra-lightweight personal cross-platform App Launcher desktop client with shadcn/ui",
   "main": "electron/main.cjs",
   "type": "module",
